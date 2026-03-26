@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Http\UploadedFile;
 
 class Project extends Model
 {
@@ -82,10 +83,11 @@ class Project extends Model
             }
 
             $filename = time() . '_' . Str::slug($this->title) . '.' . $value->getClientOriginalExtension();
-            $value->storeAs('projects', $filename, 'public');
+            $value->storeAs('projects/images', $filename, 'public');
             
-            $this->attributes['image'] = 'projects/' . $filename;
-        } elseif (is_string($value)) {
+            $this->attributes['image'] = 'projects/images/' . $filename;
+        } 
+        elseif (is_string($value)) {
             $this->attributes['image'] = $value;
         }
     }

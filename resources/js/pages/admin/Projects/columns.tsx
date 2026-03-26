@@ -75,6 +75,15 @@ export const columns = (actions: ColumnActions): ColumnDef<Project>[] => [
     ),
   },
 
+  {
+    accessorKey: "image",
+    header: "Image",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <img src={`/storage/${row.getValue("image")}`} className="max-w-10 max-h-10 rounded" alt="image" />
+    ),
+  },
+
   // Client
   {
     accessorKey: "client.name",

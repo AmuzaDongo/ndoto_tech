@@ -14,7 +14,7 @@ import admin from '@/wayfinder/routes/admin';
 interface ProjectFormModalProps {
   open: boolean;
   onClose: () => void;
-  project?: any;           // null = create, object = edit
+  project?: any;
   clients: any[];
   services: any[];
 }
@@ -53,6 +53,7 @@ export default function ProjectFormModal({ open, onClose, project, clients, serv
     start_date: project?.start_date || '',
     end_date: project?.end_date || '',
     budget: project?.budget || '',
+    image: null as File | null,
   };
 
   const handleSubmit = (values: typeof initialValues, { setSubmitting }: any) => {
