@@ -12,7 +12,7 @@ use App\Services\ConsultationService;
 use App\Models\ConsultationSlot;
 use App\Models\Consultation;
 
-class ConsultationController extends AdminController
+class ConsultationController extends Controller
 {
     public function __construct(
         protected ConsultationService $service

@@ -22,8 +22,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function Dashboard() {
-  // 🔹 Use Inertia props from controller
+export default function Index() {
   const { stats, latest_projects, top_clients, monthly_projects, services_popularity } = usePage().props as any;
 
   return (

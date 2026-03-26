@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminClientController;
 use App\Http\Controllers\Admin\ConsultationController as AdminConsultationController;
 use App\Http\Controllers\Admin\ConsultationSlotController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
 Route::inertia('/', 'Welcome')->name('home');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
@@ -30,18 +31,14 @@ Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
 
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::resource('projects', AdminProjectController::class);
-        Route::resource('services', AdminServiceController::class);
-        Route::resource('services', AdminServiceController::class);
-        Route::resource('clients', AdminClientController::class);
-        Route::get('/consultations', [AdminConsultationController::class, 'index'])->name('consultations.index');
-        Route::resource('slots', ConsultationSlotController::class)
-             ->only(['index', 'store', 'destroy']);
-    });
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('index');
+    Route::resource('projects', AdminProjectController::class);
+    Route::resource('services', AdminServiceController::class);
+    Route::resource('clients', AdminClientController::class);
+    Route::get('/consultations', [AdminConsultationController::class, 'index'])->name('consultations.index');
+    Route::resource('slots', ConsultationSlotController::class)
+            ->only(['index', 'store', 'destroy']);
 });
 
 require __DIR__ . '/settings.php';
