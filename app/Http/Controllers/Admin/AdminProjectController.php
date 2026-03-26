@@ -39,6 +39,8 @@ class AdminProjectController extends Controller
             'description'    => 'required|string',
             'challenge'      => 'nullable|string',
             'solution'       => 'nullable|string',
+            'results'        => 'nullable|array', 
+            'tags'           => 'nullable|array',
             'image'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'status'         => 'required|in:Planning,In Progress,Review,Testing,Deployment,Completed,On Hold,Cancelled',
             'stage'          => 'nullable|in:Discovery,Design,Development,Testing,Deployment,Maintenance',
@@ -47,6 +49,10 @@ class AdminProjectController extends Controller
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'budget'         => 'nullable|numeric|min:0',
         ]);
+
+        if (!isset($validated['tags'])) {
+            $validated['tags'] = [];
+        }
 
         Project::create($validated);
 
@@ -65,6 +71,8 @@ class AdminProjectController extends Controller
             'description'    => 'required|string',
             'challenge'      => 'nullable|string',
             'solution'       => 'nullable|string',
+            'results'        => 'nullable|array',
+            'tags'           => 'nullable|array', 
             'image'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'status'         => 'required|in:Planning,In Progress,Review,Testing,Deployment,Completed,On Hold,Cancelled',
             'stage'          => 'nullable|in:Discovery,Design,Development,Testing,Deployment,Maintenance',
@@ -73,6 +81,10 @@ class AdminProjectController extends Controller
             'end_date'       => 'nullable|date|after_or_equal:start_date',
             'budget'         => 'nullable|numeric|min:0',
         ]);
+
+        if (!isset($validated['tags'])) {
+            $validated['tags'] = [];
+        }
 
         $project->update($validated);
 
