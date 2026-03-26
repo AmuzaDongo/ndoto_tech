@@ -12,9 +12,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard,projects, services } from '@/routes';
+import { dashboard,projects } from '@/routes';
 import consultations from '@/routes/admin/consultations';
-import type { NavItem } from '@/types';
+import type { NavItem } from '@/types';;
+import admin from '@/wayfinder/routes/admin';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -25,7 +26,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Projects',
-        href: projects(),
+        href: admin.projects.index(),
         icon: ShieldCheck,
     },
     
@@ -36,7 +37,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Services',
-        href: services(),
+        href: admin.services.index(),
+        icon: HandPlatter,
+    },
+    {
+        title: 'Clients',
+        href: admin.clients.index(),
         icon: HandPlatter,
     },
     {

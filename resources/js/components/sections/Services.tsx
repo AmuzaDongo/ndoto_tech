@@ -1,105 +1,74 @@
 import { Link } from '@inertiajs/react';
-import { ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-interface Service {
-  title: string;
-  description: string;
-  image: string;
-  link: string;
-}
+import { ArrowRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { servicesDetails } from '@/data/services';
+import { services } from '@/wayfinder/routes';
 
 const ServicesSection = () => {
-  const services: Service[] = [
-  {
-    title: 'Web Development',
-    description: 'Custom websites, web applications, and e-commerce platforms.',
-    image: '/assets/services/web.jpg',
-    link: '/services/web-development',
-  },
-  {
-    title: 'App Development',
-    description: 'Native and cross-platform mobile applications.',
-    image: '/assets/services/app.png',
-    link: '/services/app-development',
-  },
-  {
-    title: 'UI/UX Design',
-    description: 'User-centered design solutions.',
-    image: '/assets/services/uiux.jpg',
-    link: '/services/ui-ux-design',
-  },
-  {
-    title: 'IT Consulting',
-    description: 'Strategic technology consulting services.',
-    image: '/assets/services/consulting.jpg',
-    link: '/services/it-consulting',
-  },
-  {
-    title: 'Database Management',
-    description: 'Comprehensive database solutions.',
-    image: '/assets/services/database.jpg',
-    link: '/services/database-management',
-  },
-  {
-    title: 'Data Analytics',
-    description: 'Turn raw data into valuable insights.',
-    image: '/assets/services/analytics.jpg',
-    link: '/services/data-analytics',
-  },
-];
-
   return (
-    <section className="py-16 bg-gray-50" id="services">
-      <div className="container mx-auto px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold mb-4">Our Services</h2>
-          <p className="text-gray-600 text-lg">
-            We offer a comprehensive range of technology solutions to help your business thrive in the digital world.
+    <section className="py-20 bg-gray-50" id="services">
+      <div className="container mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 bg-white px-4 py-1.5 rounded-full border mb-4">
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+            <span className="uppercase text-xs font-semibold tracking-widest text-gray-500">What We Offer</span>
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Our <span className="text-blue-600">Services</span>
+          </h2>
+          <p className="text-lg text-gray-600">
+            Innovative technology solutions designed to help your business grow, transform, and thrive in the digital age.
           </p>
         </div>
 
+        {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
+          {servicesDetails.map((service) => (
             <Link
-              key={index}
-              href={service.link}
-              className="group relative h-80 rounded-xl overflow-hidden"
+              key={service.id}
+              href={services.url() }   // ← Updated to match your route
+              className="group"
             >
-              {/* Background Image */}
-              <img
-                src={service.image}
-                alt={service.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
+              <Card className="h-full overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white">
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://placehold.co/600x400/e2e8f0/64748b?text=${encodeURIComponent(service.title)}`;
+                    }}
+                  />
 
-              {/* Dark Overlay */}
-              <div className="absolute inset-0 bg-black/60 group-hover:bg-black/70 transition-all duration-300"></div>
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-              {/* Content */}
-              <div className="relative z-10 h-full flex flex-col justify-end p-6 text-white">
-                <h3 className="text-xl font-bold mb-2">
-                  {service.title}
-                </h3>
-                <p className="text-sm text-gray-200 mb-4">
-                  {service.description}
-                </p>
-                <div className="flex items-center text-blue-400 font-medium">
-                  Learn More
-                  <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  {/* Service Icon / Badge */}
+                  <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+                    Professional
+                  </div>
                 </div>
-              </div>
+
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    {service.title}
+                  </h3>
+
+                  <p className="text-gray-600 leading-relaxed mb-6 line-clamp-3">
+                    {service.description}
+                  </p>
+
+                  <div className="flex items-center text-blue-600 font-medium group-hover:gap-3 transition-all">
+                    Explore Service
+                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
-        </div>
-
-        <div className="mt-12 text-center">
-          <Button asChild className="bg-blue-600 hover:bg-blue-700">
-            <Link href="/services">
-              View All Services
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
         </div>
       </div>
     </section>

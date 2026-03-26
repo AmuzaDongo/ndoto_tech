@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
 import Hero from '@/components/sections/Hero';
+import ServicesSection from '@/components/sections/Services';
 
 
 
@@ -22,6 +23,9 @@ export default function Index() {
                 ctaText="Get in Touch"
                 ctaLink="/contact"
                 isHomepage={false}
+            />
+            <ServicesSection
+                
             />
             <Footer />
         </>

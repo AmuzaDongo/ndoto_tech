@@ -75,13 +75,22 @@ const AboutSection = () => {
           {/* Image Content */}
           <div className="relative">
             <div className="relative aspect-square rounded-3xl overflow-hidden shadow-xl">
-              <img 
-                src="/assets/about/ndoto.png" 
-                alt="Ndoto Company Team" 
+              <video
+                src="/assets/about/ndoto.mp4"
+                poster="/assets/about/ndoto.png"
+                autoPlay
+                muted
+                loop
+                playsInline
                 className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                 onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://placehold.co/600x600/e2e8f0/64748b?text=Ndoto+Team";
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                  const fallback = document.createElement('img');
+                  fallback.src = "/assets/about/ndoto.png";
+                  fallback.alt = "Ndoto Company Team";
+                  fallback.className = "w-full h-full object-cover";
+                  target.parentElement?.appendChild(fallback);
                 }}
               />
               {/* Overlay Shape */}

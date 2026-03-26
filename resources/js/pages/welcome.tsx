@@ -3,8 +3,8 @@ import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
 import AboutSection from '@/components/sections/About';
 import Hero from '@/components/sections/Hero';
+import HomeServices from '@/components/sections/HomeServices';
 import ProjectsSection from '@/components/sections/Projects';
-import ServicesSection from '@/components/sections/Services';
 import TestimonialsSection from '@/components/sections/Testimonials';
 
 export default function Welcome() {
@@ -28,7 +28,7 @@ export default function Welcome() {
                 isHomepage={true} 
             />
             <AboutSection />
-            <ServicesSection />
+            <HomeServices />
 
             <TestimonialsSection />
 

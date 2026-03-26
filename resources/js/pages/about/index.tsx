@@ -1,7 +1,9 @@
 import { Head } from '@inertiajs/react';
 import Footer from '@/components/layout/Footer';
 import Header from '@/components/layout/Header';
+import AboutSection from '@/components/sections/About';
 import Hero from '@/components/sections/Hero';
+import MeetOurTeam from '@/components/sections/MeetOurTeam';
 
 
 
@@ -23,6 +25,8 @@ export default function Index() {
                 ctaLink="/services"
                 isHomepage={false}
             />
+            <AboutSection />
+            <MeetOurTeam />
             <Footer />
         </>
     );
