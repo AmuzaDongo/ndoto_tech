@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import * as Yup from 'yup';
 import { Button } from '@/components/ui/button';
@@ -33,8 +34,11 @@ const validationSchema = Yup.object({
   budget: Yup.number().min(0).nullable(),
 });
 
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
 export default function ProjectFormModal({ open, onClose, project, clients, services }: ProjectFormModalProps) {
   const isEditing = !!project;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const initialValues = {
     title: project?.title || '',
@@ -51,23 +55,35 @@ export default function ProjectFormModal({ open, onClose, project, clients, serv
     budget: project?.budget || '',
   };
 
-  const handleSubmit = (values: any, { setSubmitting }: any) => {
-    const url = isEditing
-      ? admin.projects.update(project.id)
-      : admin.projects.store();
+  const handleSubmit = (values: typeof initialValues, { setSubmitting }: any) => {
+    const formData = new FormData();
 
-    const method = isEditing ? router.put : router.post;
-
-    method(url, values, {
-      onSuccess: () => {
-        toast.success(isEditing ? 'Project updated successfully' : 'Project created successfully');
-        onClose();
-      },
-      onError: (errors) => {
-        toast.error('Something went wrong. Please check the form.', errors);
-      },
-      onFinish: () => setSubmitting(false),
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) formData.append(key, value as any);
     });
+
+    if (isEditing) {
+      formData.append('_method', 'PUT');
+
+      router.post(admin.projects.update(project.id), formData, {
+        onSuccess: () => {
+          toast.success('Project updated successfully');
+          onClose();
+        },
+        onError: () => toast.error('Please check the form'),
+        onFinish: () => setSubmitting(false),
+      });
+
+    } else {
+      router.post(admin.projects.store(), formData, {
+        onSuccess: () => {
+          toast.success('Project created successfully');
+          onClose();
+        },
+        onError: () => toast.error('Please check the form'),
+        onFinish: () => setSubmitting(false),
+      });
+    }
   };
 
   return (
@@ -132,7 +148,7 @@ export default function ProjectFormModal({ open, onClose, project, clients, serv
               {/* Description */}
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Field as={Textarea} id="description" name="description" rows={4} />
+                <Field as={Textarea} id="description" name="description" rows={3} />
                 <ErrorMessage name="description" component="p" className="text-sm text-red-500 mt-1" />
               </div>
 
@@ -194,6 +210,30 @@ export default function ProjectFormModal({ open, onClose, project, clients, serv
                   <Label>Budget</Label>
                   <Field as={Input} type="number" name="budget" placeholder="0.00" />
                 </div>
+              </div>
+              <div>
+                <Label>Image</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e: any) => {
+                    const file = e.target.files[0];
+
+                    if (file) {
+                      if (file.size > MAX_IMAGE_SIZE) {
+                        toast.error("Max file size is 5MB");
+                        return;
+                      }
+
+                      setFieldValue("image", file);
+                      setPreviewUrl(URL.createObjectURL(file));
+                    }
+                  }}
+                />
+
+                {previewUrl && (
+                  <img src={previewUrl} className="w-32 mt-3 border rounded" />
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
