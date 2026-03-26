@@ -66,7 +66,7 @@ class AdminClientController extends Controller
 
     public function edit(Client $client)
     {
-        return Inertia::render('admin/Clients/Edit', [
+        return Inertia::render('admin/Clients/Index', [
             'client' => $client,
         ]);
     }

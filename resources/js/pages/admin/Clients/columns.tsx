@@ -1,9 +1,8 @@
-import type { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
-import { MoreHorizontal } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import type { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,19 +10,28 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
-export type Consultation = {
-  id: number
-  name: string
-  email: string
-  service: string
-  preferred_date: string
-  status: "pending" | "approved" | "rejected" | "completed" | string
+export type Client = {
+  id: number;
+  name: string;
+  industry?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  description?: string;
+  projects_count?: number;
+  logo?: string;
+};
+
+interface ColumnActions {
+  onView: (client: Client) => void;
+  onEdit: (client: Client) => void;
+  onDelete: (id: number) => void;
 }
 
-export const columns: ColumnDef<Consultation>[] = [
-  // ── Checkbox column for bulk selection ────────────────────────────────
+export const columns = (actions: ColumnActions): ColumnDef<Client>[] => [
+  // Checkbox Column
   {
     id: "select",
     header: ({ table }) => (
@@ -47,67 +55,54 @@ export const columns: ColumnDef<Consultation>[] = [
     enableHiding: false,
   },
 
-  // ── Client name ───────────────────────────────────────────────────────
+  // Client Name
   {
     accessorKey: "name",
-    header: "Client",
+    header: "Client Name",
     enableSorting: true,
+    cell: ({ row }) => (
+      <div className="font-semibold text-gray-900">{row.getValue("name")}</div>
+    ),
   },
 
-  // ── Email ─────────────────────────────────────────────────────────────
+  // Industry
+  {
+    accessorKey: "industry",
+    header: "Industry",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <span className="capitalize text-sm text-gray-600">
+        {row.getValue("industry") || "—"}
+      </span>
+    ),
+  },
+
+  // Email
   {
     accessorKey: "email",
     header: "Email",
     enableSorting: true,
+    cell: ({ row }) => row.getValue("email") || "—",
   },
 
-  // ── Service ───────────────────────────────────────────────────────────
+  // Projects Count
   {
-    accessorKey: "service",
-    header: "Service",
+    accessorKey: "projects_count",
+    header: "Projects",
     enableSorting: true,
+    cell: ({ row }) => (
+      <div className="font-medium text-center text-blue-600">
+        {row.original.projects_count || 0}
+      </div>
+    ),
   },
 
-  // ── Preferred Date ────────────────────────────────────────────────────
-  {
-    accessorKey: "preferred_date",
-    header: "Date",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const date = row.getValue("preferred_date") as string
-      // Safeguard + nice formatting
-      return date ? format(new Date(date), "MMM dd, yyyy") : "—"
-    },
-  },
-
-  // ── Status with colored badges ────────────────────────────────────────
-  {
-    accessorKey: "status",
-    header: "Status",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const status = (row.getValue("status") as string)?.toLowerCase() ?? ""
-
-      let variant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "success" = "outline";
-
-      if (status.includes("approved") || status === "completed") {
-        variant = "success";
-      } else if (status.includes("rejected")) {
-        variant = "destructive";
-      } else if (status.includes("pending")) {
-        variant = "secondary";
-      }
-
-      return <Badge variant={variant}>{status || "Unknown"}</Badge>;
-    },
-  },
-
-  // ── Actions column ────────────────────────────────────────────────────
+  // Actions
   {
     id: "actions",
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => {
-      const consultation = row.original
+      const client = row.original;
 
       return (
         <DropdownMenu>
@@ -117,27 +112,33 @@ export const columns: ColumnDef<Consultation>[] = [
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(consultation.email)}
-            >
-              Copy email
+
+            <DropdownMenuItem onClick={() => actions.onView(client)}>
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
             </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => actions.onEdit(client)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Client
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Approve</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              Reject
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              Delete
+
+            <DropdownMenuItem 
+              onClick={() => actions.onDelete(client.id)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Client
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
     enableSorting: false,
     enableHiding: false,
   },
-]
+];

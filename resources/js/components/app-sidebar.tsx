@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, Forklift, Handshake, HandPlatter, LayoutGrid, MessageCircleHeart, ShieldCheck, SwatchBook, ListOrdered} from 'lucide-react';
+import { BookOpen, Folder, Forklift, Handshake, HandPlatter, LayoutGrid, MessageCircleHeart, ShieldCheck, SwatchBook, ListOrdered, UserPlus} from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -43,7 +43,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Clients',
         href: admin.clients.index(),
-        icon: HandPlatter,
+        icon: UserPlus,
     },
     {
         title: 'Consultation',
