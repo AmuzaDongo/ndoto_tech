@@ -59,15 +59,17 @@ class AdminClientController extends Controller
             }
         ]);
 
-        return Inertia::render('admin/Clients/Show', [
-            'client' => $client,
+        return Inertia::render('Admin/Clients/Index', [
+            'clients' => Client::withCount('projects')->orderBy('name')->get(),
+            'clientToShow' => $client, 
         ]);
     }
 
     public function edit(Client $client)
     {
-        return Inertia::render('admin/Clients/Index', [
-            'client' => $client,
+        return Inertia::render('Admin/Clients/Index', [
+            'clients' => Client::withCount('projects')->orderBy('name')->get(),
+            'clientToEdit' => $client,
         ]);
     }
 
