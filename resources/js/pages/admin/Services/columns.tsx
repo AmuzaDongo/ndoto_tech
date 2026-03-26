@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -61,7 +62,15 @@ export const columns = (actions: ColumnActions): ColumnDef<Service>[] => [
     ),
   },
 
-  // Description (truncated)
+  {
+    accessorKey: "image",
+    header: "Image",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <img src={`/storage/${row.getValue("image")}`} className="max-w-10 max-h-10 rounded" alt="image" />
+    ),
+  },
+
   {
     accessorKey: "description",
     header: "Description",
@@ -76,19 +85,17 @@ export const columns = (actions: ColumnActions): ColumnDef<Service>[] => [
     },
   },
 
-  // Number of Projects
   {
     accessorKey: "projects_count",
     header: "Projects",
     enableSorting: true,
     cell: ({ row }) => (
-      <div className="font-medium text-center">
+      <Badge className="font-medium text-center">
         {row.original.projects_count || 0}
-      </div>
+      </Badge>
     ),
   },
 
-  // Actions
   {
     id: "actions",
     header: () => <span className="sr-only">Actions</span>,

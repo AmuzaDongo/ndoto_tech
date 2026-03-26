@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -101,7 +102,7 @@ export const columns = (actions: ColumnActions): ColumnDef<Client>[] => [
     enableSorting: true,
     cell: ({ row }) => (
       <div className="font-medium text-center text-blue-600">
-        {row.original.projects_count || 0}
+        <Badge className="capitalize font-medium" >{row.original.projects_count || 0}</Badge>
       </div>
     ),
   },

@@ -29,32 +29,19 @@ Route::get('/consultation/slots', [ConsultationController::class, 'availableSlot
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
-// ======================
-// AUTHENTICATED ROUTES
-// ======================
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
-
-    // ======================
-    // ADMIN ROUTES
-    // ======================
     Route::prefix('admin')->name('admin.')->group(function () {
-
-
         Route::resource('projects', AdminProjectController::class);
         Route::resource('services', AdminServiceController::class);
         Route::resource('services', AdminServiceController::class);
         Route::resource('clients', AdminClientController::class);
         Route::get('/consultations', [AdminConsultationController::class, 'index'])->name('consultations.index');
-        
         Route::resource('slots', ConsultationSlotController::class)
              ->only(['index', 'store', 'destroy']);
     });
 });
 
-// ======================
-// SETTINGS
-// ======================
 require __DIR__ . '/settings.php';

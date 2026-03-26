@@ -29,17 +29,27 @@ class AdminServiceController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'approach'     => json_decode($request->approach, true),
+            'features'     => json_decode($request->features, true),
+            'benefits'     => json_decode($request->benefits, true),
+            'technologies' => json_decode($request->technologies, true),
+            'faq'          => json_decode($request->faq, true),
+        ]);
+
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'required|string|max:500',
             'content'      => 'required|string',
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+
             'approach'     => 'nullable|array',
             'features'     => 'nullable|array',
             'benefits'     => 'required|array|min:1',
             'technologies' => 'nullable|array',
             'faq'          => 'nullable|array',
         ]);
+
 
         $service = Service::create($validated);
 
@@ -68,11 +78,20 @@ class AdminServiceController extends Controller
 
     public function update(Request $request, Service $service)
     {
+        $request->merge([
+            'approach'     => json_decode($request->approach, true),
+            'features'     => json_decode($request->features, true),
+            'benefits'     => json_decode($request->benefits, true),
+            'technologies' => json_decode($request->technologies, true),
+            'faq'          => json_decode($request->faq, true),
+        ]);
+
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'required|string|max:500',
             'content'      => 'required|string',
             'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+
             'approach'     => 'nullable|array',
             'features'     => 'nullable|array',
             'benefits'     => 'required|array|min:1',

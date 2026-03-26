@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class Service extends Model
 {
@@ -33,6 +34,8 @@ class Service extends Model
         'faq'          => 'array',
     ];
 
+    protected $appends = ['image_url'];
+
     protected static function booted()
     {
         static::creating(function ($service) {
@@ -56,25 +59,26 @@ class Service extends Model
     public function setImageAttribute($value)
     {
         if ($value instanceof UploadedFile) {
-            if ($this->image && file_exists(public_path('storage/' . $this->image))) {
-                unlink(public_path('storage/' . $this->image));
+
+            if ($this->image && Storage::disk('public')->exists($this->image)) {
+                Storage::disk('public')->delete($this->image);
             }
 
             $filename = time() . '_' . Str::slug($this->title) . '.' . $value->getClientOriginalExtension();
-            $value->storeAs('services', $filename, 'public');
-            
-            $this->attributes['image'] = 'services/' . $filename;
-        } elseif (is_string($value)) {
+
+            $path = $value->storeAs('services/images', $filename, 'public');
+
+            $this->attributes['image'] = $path;
+        } 
+        elseif (is_string($value)) {
             $this->attributes['image'] = $value;
         }
     }
 
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image) {
-            return null;
-        }
-
-        return asset('storage/' . $this->image);
+        return $this->image
+            ? asset('storage/' . $this->image)
+            : null;
     }
 }

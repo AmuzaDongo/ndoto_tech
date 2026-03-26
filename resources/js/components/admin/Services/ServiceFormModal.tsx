@@ -1,12 +1,15 @@
-import { useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import * as Yup from 'yup';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
 import admin from '@/wayfinder/routes/admin';
 
 interface ServiceFormModalProps {
@@ -15,62 +18,70 @@ interface ServiceFormModalProps {
   service?: any;
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-export default function ServiceFormModal({ 
-  open, 
-  onClose, 
-  service 
-}: ServiceFormModalProps) {
+// ✅ Validation
+const validationSchema = Yup.object({
+  title: Yup.string().required('Title is required').min(3),
+  description: Yup.string().required('Description is required'),
+  content: Yup.string(),
+});
+
+export default function ServiceFormModal({ open, onClose, service }: ServiceFormModalProps) {
 
   const isEditing = !!service;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const form = useForm({
+  // ✅ Initial Values
+  const initialValues = {
     title: service?.title || '',
     description: service?.description || '',
     content: service?.content || '',
     image: null as File | null,
+
+    approach: service?.approach || [],
+    features: service?.features || [],
     benefits: service?.benefits || [],
     technologies: service?.technologies || [],
-  });
-
-  // Set preview when editing
-  useEffect(() => {
-    if (isEditing && service?.image) {
-      setPreviewUrl(`/storage/${service.image}`);
-    }
-  }, [service, isEditing]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_IMAGE_SIZE) {
-        toast.error('Image must be less than 5MB');
-        return;
-      }
-      form.setData('image', file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
+    faq: service?.faq || [],
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ Submit
+  const handleSubmit = (values: typeof initialValues, { setSubmitting }: any) => {
+    const formData = new FormData();
 
-    const url = isEditing 
-      ? admin.services.update(service.id) 
-      : admin.services.store();
-
-    form.post(url, {
-      forceFormData: true,
-      onSuccess: () => {
-        toast.success(isEditing ? 'Service updated successfully' : 'Service created successfully');
-        onClose();
-      },
-      onError: () => {
-        toast.error('Please check the form for errors.');
-      },
+    Object.entries(values).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value)); // ✅ FIXED
+        } else {
+          formData.append(key, value as any);
+        }
+      }
     });
+
+    if (isEditing) {
+      formData.append('_method', 'PUT');
+
+      router.post(admin.services.update(service.id), formData, {
+        onSuccess: () => {
+          toast.success('Service updated successfully');
+          onClose();
+        },
+        onError: () => toast.error('Please check the form'),
+        onFinish: () => setSubmitting(false),
+      });
+
+    } else {
+      router.post(admin.services.store(), formData, {
+        onSuccess: () => {
+          toast.success('Service created successfully');
+          onClose();
+        },
+        onError: () => toast.error('Please check the form'),
+        onFinish: () => setSubmitting(false),
+      });
+    }
   };
 
   return (
@@ -82,106 +93,174 @@ export default function ServiceFormModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          {/* Title */}
-          <div>
-            <Label htmlFor="title">Service Title</Label>
-            <Input
-              id="title"
-              value={form.data.title}
-              onChange={e => form.setData('title', e.target.value)}
-            />
-            {form.errors.title && <p className="text-sm text-red-500 mt-1">{form.errors.title}</p>}
-          </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {({ setFieldValue, values, isSubmitting }) => (
+            <Form className="space-y-6 py-4">
 
-          {/* Short Description */}
-          <div>
-            <Label htmlFor="description">Short Description</Label>
-            <Input
-              id="description"
-              value={form.data.description}
-              onChange={e => form.setData('description', e.target.value)}
-            />
-            {form.errors.description && <p className="text-sm text-red-500 mt-1">{form.errors.description}</p>}
-          </div>
+              {/* Title */}
+              <div>
+                <Label>Service Title</Label>
+                <Field 
+                  as={Input} 
+                  name="title" 
+                  placeholder="e.g. Web Development, Mobile App Development" 
+                />
+                <ErrorMessage name="title" component="p" className="text-sm text-red-500 mt-1" />
+              </div>
 
-          {/* Full Content */}
-          <div>
-            <Label htmlFor="content">Detailed Content</Label>
-            <Textarea
-              id="content"
-              rows={6}
-              value={form.data.content}
-              onChange={e => form.setData('content', e.target.value)}
-            />
-            {form.errors.content && <p className="text-sm text-red-500 mt-1">{form.errors.content}</p>}
-          </div>
+              {/* Description */}
+              <div>
+                <Label>Short Description</Label>
+                <Field 
+                  as={Input} 
+                  name="description" 
+                  placeholder="Brief summary of the service" 
+                />
+                <ErrorMessage name="description" component="p" className="text-sm text-red-500 mt-1" />
+              </div>
 
-          {/* Image Upload */}
-          <div>
-            <Label htmlFor="image">
-              Service Image <span className="text-xs text-gray-500">(Max 5MB • JPEG, PNG, WebP)</span>
-            </Label>
-            <Input 
-              type="file" 
-              id="image"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImageChange}
-            />
-            
-            {previewUrl && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-500 mb-2">Preview:</p>
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-48 h-48 object-cover rounded-lg border" 
+              {/* Content */}
+              <div>
+                <Label>Detailed Content</Label>
+                <Field 
+                  as={Textarea} 
+                  name="content" 
+                  rows={6} 
+                  placeholder="Explain the service in detail..." 
                 />
               </div>
-            )}
-          </div>
 
-          {/* Benefits */}
-          <div>
-            <Label>Key Benefits (one per line)</Label>
-            <Textarea
-              rows={4}
-              value={form.data.benefits.join('\n')}
-              onChange={(e) => {
-                const lines = e.target.value.split('\n').filter(Boolean);
-                form.setData('benefits', lines);
-              }}
-              placeholder="Increased performance&#10;Better user experience"
-            />
-          </div>
+              {/* Image Upload */}
+              <div>
+                <Label>
+                  Service Image <span className="text-xs text-gray-500">(Max 5MB • JPEG, PNG, WebP)</span>
+                </Label>
 
-          {/* Technologies */}
-          <div>
-            <Label>Technologies Used (comma separated)</Label>
-            <Input 
-              value={form.data.technologies.join(', ')}
-              onChange={(e) => {
-                const techs = e.target.value.split(',').map(t => t.trim()).filter(Boolean);
-                form.setData('technologies', techs);
-              }}
-              placeholder="React, Laravel, PostgreSQL, AWS"
-            />
-          </div>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e: any) => {
+                    const file = e.target.files[0];
 
-          <div className="flex justify-end gap-3 pt-6">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={form.processing}>
-              {form.processing 
-                ? 'Saving...' 
-                : isEditing 
-                  ? 'Update Service' 
-                  : 'Create Service'
-              }
-            </Button>
-          </div>
-        </form>
+                    if (file) {
+                      if (!file.type.startsWith('image/')) {
+                        toast.error('File must be an image');
+                        return;
+                      }
+
+                      if (file.size > MAX_IMAGE_SIZE) {
+                        toast.error('Image must be less than 5MB');
+                        return;
+                      }
+
+                      setFieldValue('image', file);
+                      setPreviewUrl(URL.createObjectURL(file));
+                    }
+                  }}
+                />
+
+                {previewUrl && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-500 mb-2">Preview:</p>
+                    <img 
+                      src={previewUrl} 
+                      className="w-48 h-48 object-cover rounded-lg border" 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* ARRAY FIELDS */}
+
+              <div>
+                <Label>Approach (comma separated)</Label>
+                <Input
+                  placeholder="Planning, Design, Development, Testing"
+                  value={values.approach.join(', ')}
+                  onChange={(e) =>
+                    setFieldValue('approach',
+                      e.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Features (comma separated)</Label>
+                <Input
+                  placeholder="Responsive design, API integration, Dashboard"
+                  value={values.features.join(', ')}
+                  onChange={(e) =>
+                    setFieldValue('features',
+                      e.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Benefits (comma separated)</Label>
+                <Input
+                  placeholder="Faster performance, Cost saving, Scalability"
+                  value={values.benefits.join(', ')}
+                  onChange={(e) =>
+                    setFieldValue('benefits',
+                      e.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Technologies (comma separated)</Label>
+                <Input
+                  placeholder="React, Laravel, PostgreSQL, AWS"
+                  value={values.technologies.join(', ')}
+                  onChange={(e) =>
+                    setFieldValue('technologies',
+                      e.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>FAQ (comma separated)</Label>
+                <Input
+                  placeholder="What is the cost?, How long does it take?, Do you offer support?"
+                  value={values.faq.join(', ')}
+                  onChange={(e) =>
+                    setFieldValue('faq',
+                      e.target.value.split(',').map(i => i.trim()).filter(Boolean)
+                    )
+                  }
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-3 pt-6">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting 
+                    ? 'Saving...' 
+                    : isEditing 
+                      ? 'Update Service' 
+                      : 'Create Service'
+                  }
+                </Button>
+              </div>
+
+            </Form>
+          )}
+        </Formik>
       </DialogContent>
     </Dialog>
   );
