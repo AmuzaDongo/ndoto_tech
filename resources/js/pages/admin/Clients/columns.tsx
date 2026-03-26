@@ -55,6 +55,15 @@ export const columns = (actions: ColumnActions): ColumnDef<Client>[] => [
     enableHiding: false,
   },
 
+   {
+    accessorKey: "logo",
+    header: "Logo",
+    enableSorting: true,
+    cell: ({ row }) => (
+      <img src={`/storage/${row.getValue("logo")}`} className="max-w-20 max-h-10" alt="logo" />
+    ),
+  },
+
   // Client Name
   {
     accessorKey: "name",

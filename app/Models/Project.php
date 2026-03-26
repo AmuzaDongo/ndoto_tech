@@ -43,6 +43,21 @@ class Project extends Model
         'progress'      => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($project) {
+            if (empty($project->slug)) {
+                $project->slug = Str::slug($project->title);
+            }
+        });
+
+        static::updating(function ($project) {
+            if ($project->isDirty('title') && empty($project->slug)) {
+                $project->slug = Str::slug($project->title);
+            }
+        });
+    }
+
     // Relationships
     public function service()
     {
@@ -57,5 +72,30 @@ class Project extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'project_owner_id');
+    }
+
+    public function setImageAttribute($value)
+    {
+        if ($value instanceof UploadedFile) {
+            if ($this->image && file_exists(public_path('storage/' . $this->image))) {
+                unlink(public_path('storage/' . $this->image));
+            }
+
+            $filename = time() . '_' . Str::slug($this->title) . '.' . $value->getClientOriginalExtension();
+            $value->storeAs('projects', $filename, 'public');
+            
+            $this->attributes['image'] = 'projects/' . $filename;
+        } elseif (is_string($value)) {
+            $this->attributes['image'] = $value;
+        }
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        return asset('storage/' . $this->image);
     }
 }
