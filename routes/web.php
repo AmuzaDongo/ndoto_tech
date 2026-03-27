@@ -19,6 +19,33 @@ use App\Http\Controllers\Admin\ConsultationController as AdminConsultationContro
 use App\Http\Controllers\Admin\ConsultationSlotController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 
+
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('admin')
+    ->as('admin.')
+    ->group(function () {
+
+        Route::resource('slots', ConsultationSlotController::class)
+            ->only(['index', 'store', 'destroy']);
+
+        Route::resource('projects', AdminProjectController::class)
+            ->names('projects');
+
+        Route::resource('services', AdminServiceController::class)
+            ->names('services');
+
+        Route::resource('clients', AdminClientController::class)
+            ->names('clients');
+
+        
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/consultations', [AdminConsultationController::class, 'index'])
+            ->name('consultations.index');
+    });
+
 Route::inertia('/', 'Welcome')->name('home');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/industries', [IndustryController::class, 'index'])->name('industries');
@@ -30,15 +57,5 @@ Route::get('/consultation/slots', [ConsultationController::class, 'availableSlot
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
-
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('index');
-    Route::resource('projects', AdminProjectController::class);
-    Route::resource('services', AdminServiceController::class);
-    Route::resource('clients', AdminClientController::class);
-    Route::get('/consultations', [AdminConsultationController::class, 'index'])->name('consultations.index');
-    Route::resource('slots', ConsultationSlotController::class)
-            ->only(['index', 'store', 'destroy']);
-});
 
 require __DIR__ . '/settings.php';
