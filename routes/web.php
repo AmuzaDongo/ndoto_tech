@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 // Import Controllers
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\IndustryController;
@@ -19,6 +20,18 @@ use App\Http\Controllers\Admin\ConsultationController as AdminConsultationContro
 use App\Http\Controllers\Admin\ConsultationSlotController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 
+
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+Route::get('/industries', [IndustryController::class, 'index'])->name('industries');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
+Route::get('/consultation', [ConsultationController::class, 'index'])->name('consultation');
+Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
+Route::get('/consultation/slots', [ConsultationController::class, 'availableSlots'])->name('consultation.slots');
+Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
 
 Route::middleware(['auth', 'verified'])
@@ -46,16 +59,6 @@ Route::middleware(['auth', 'verified'])
             ->name('consultations.index');
     });
 
-Route::inertia('/', 'Welcome')->name('home');
-Route::get('/about', [AboutController::class, 'index'])->name('about');
-Route::get('/industries', [IndustryController::class, 'index'])->name('industries');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
-Route::get('/consultation', [ConsultationController::class, 'index'])->name('consultation');
-Route::post('/consultations', [ConsultationController::class, 'store'])->name('consultations.store');
-Route::get('/consultation/slots', [ConsultationController::class, 'availableSlots'])->name('consultation.slots');
-Route::get('/services', [ServiceController::class, 'index']);
-Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
 
 require __DIR__ . '/settings.php';

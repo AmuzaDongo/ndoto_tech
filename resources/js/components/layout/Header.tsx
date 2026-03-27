@@ -3,7 +3,9 @@ import { Menu} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { dashboard, login, services, about } from '@/routes';
+import { about, login, home } from '@/wayfinder/routes';
+import admin from '@/wayfinder/routes/admin';
+import services from '@/wayfinder/routes/services';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,9 +18,9 @@ const Header = () => {
   }, []);
 
   const navLinks = [
-    { title: 'Home', href: '/' },
+    { title: 'Home', href: home() },
     { title: 'About Us', href: about() },
-    { title: 'Services', href: services() },
+    { title: 'Services', href: services.index() },
     { title: 'Industries', href: '/industries' },
     { title: 'Projects', href: '/projects' },
     { title: 'Contact', href: '/contact' },
@@ -63,7 +65,7 @@ const Header = () => {
 
           {auth.user ? (
             <Link
-              href={dashboard()}
+              href={admin.dashboard()}
               className="ml-6 px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 transition"
             >
               Dashboard
@@ -73,7 +75,7 @@ const Header = () => {
               asChild
               className="ml-6 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md transition-transform hover:scale-105"
             >
-              <Link href={login()}>Log In</Link>
+              <Link href={login()}>Get Started</Link>
             </Button>
           )}
         </nav>
@@ -128,7 +130,7 @@ const Header = () => {
             <div className="mt-6">
               {auth.user ? (
                 <Link
-                  href={dashboard()}
+                  href={admin.dashboard()}
                   className="block w-full text-center px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-transform hover:scale-105"
                 >
                   Dashboard

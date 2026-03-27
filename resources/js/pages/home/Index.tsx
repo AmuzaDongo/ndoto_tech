@@ -7,7 +7,7 @@ import HomeServices from '@/components/sections/HomeServices';
 import ProjectsSection from '@/components/sections/Projects';
 import TestimonialsSection from '@/components/sections/Testimonials';
 
-export default function Welcome() {
+export default function Index() {
     return (
         <>
             <Head title="Home">
