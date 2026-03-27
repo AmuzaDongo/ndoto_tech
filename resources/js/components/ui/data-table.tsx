@@ -1,4 +1,6 @@
-import * as React from 'react';
+"use client";
+
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -6,13 +8,9 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -21,102 +19,88 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './table';
+} from "./table";
 
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableToolbar } from "./data-table-toolbar";
 
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { router } from "@inertiajs/react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+
   searchKey?: string;
   searchPlaceholder?: string;
-  filterableColumns?: {
-    id: string;
-    title: string;
-    options: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[];
-  }[];
-  enableRowSelection?: boolean;
-  enableColumnVisibility?: boolean;
-  enableExport?: boolean;
-  onExport?: (data: TData[]) => void;
+
+  totalRecords: number;
+  currentPage: number; // ✅ 1-based (Laravel)
+  totalPages: number;
+  perPage: number;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-  searchPlaceholder = 'Search...',
-  filterableColumns = [],
-  enableRowSelection = true,
-  enableColumnVisibility = true,
-  enableExport = true,
-  onExport,
+  searchPlaceholder = "Search...",
+
+  totalRecords,
+  currentPage,
+  totalPages,
+  perPage,
 }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  // ✅ HANDLE BACKEND SORTING
+  React.useEffect(() => {
+    if (sorting.length === 0) return;
+
+    const sort = sorting[0];
+
+    router.get(
+      window.location.pathname,
+      {
+        sort: sort.id,
+        direction: sort.desc ? "desc" : "asc",
+      },
+      {
+        preserveState: true,
+        replace: true,
+      }
+    );
+  }, [sorting]);
 
   const table = useReactTable({
     data,
     columns,
+
     state: {
       sorting,
       columnVisibility,
       rowSelection,
-      columnFilters,
+      pagination: {
+        pageIndex: currentPage - 1, // ✅ correct
+        pageSize: perPage,
+      },
     },
-    enableRowSelection,
-    onRowSelectionChange: setRowSelection,
+
+    manualPagination: true,
+    pageCount: totalPages,
+
+    enableRowSelection: true,
+
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getSortedRowModel: getSortedRowModel(), // UI only
   });
-
-  const handleExport = React.useCallback(() => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const dataToExport = selectedRows.length > 0 
-      ? selectedRows.map(row => row.original)
-      : table.getFilteredRowModel().rows.map(row => row.original);
-    
-    if (onExport) {
-      onExport(dataToExport);
-    } else {
-      // Default CSV export
-      const headers = table.getVisibleFlatColumns()
-        .filter(col => col.id !== 'select' && col.id !== 'actions')
-        .map(col => col.id);
-      
-      const csv = [
-        headers.join(','),
-        ...dataToExport.map(row => 
-          headers.map(header => {
-            const value = (row as Record<string, unknown>)[header];
-            return typeof value === 'string' && value.includes(',') 
-              ? `"${value}"` 
-              : value;
-          }).join(',')
-        )
-      ].join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `export-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }
-  }, [table, onExport]);
 
   return (
     <div className="space-y-4">
@@ -124,53 +108,41 @@ export function DataTable<TData, TValue>({
         table={table}
         searchKey={searchKey}
         searchPlaceholder={searchPlaceholder}
-        filterableColumns={filterableColumns}
-        enableColumnVisibility={enableColumnVisibility}
-        enableExport={enableExport}
-        onExport={handleExport}
       />
 
       <div className="rounded-md border">
-        <Table className="w-full">
+        <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  // Skip placeholder or columns without header content
-                  if (header.isPlaceholder) {
-                    return <TableHead key={header.id} colSpan={header.colSpan} />;
-                  }
+                  if (header.isPlaceholder) return null;
 
-                  const canSort = header.column.getCanSort();
                   const isSorted = header.column.getIsSorted();
+                  const canSort = header.column.getCanSort();
 
                   return (
                     <TableHead
                       key={header.id}
-                      colSpan={header.colSpan}
-                      className={canSort ? "cursor-pointer select-none" : ""}
+                      className={canSort ? "cursor-pointer" : ""}
                       onClick={
                         canSort
                           ? header.column.getToggleSortingHandler()
                           : undefined
                       }
                     >
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
 
                         {canSort && (
-                          <span className="ml-1 flex h-4 w-4 items-center justify-center">
-                            {isSorted === "asc" ? (
-                              <ArrowUp className="h-4 w-4" />
-                            ) : isSorted === "desc" ? (
-                              <ArrowDown className="h-4 w-4" />
-                            ) : (
-                              <ArrowUpDown className="h-4 w-4 opacity-50" />
-                            )}
-                          </span>
+                          <>
+                            {isSorted === "asc" && <ArrowUp size={14} />}
+                            {isSorted === "desc" && <ArrowDown size={14} />}
+                            {!isSorted && <ArrowUpDown size={14} />}
+                          </>
                         )}
                       </div>
                     </TableHead>
@@ -181,14 +153,11 @@ export function DataTable<TData, TValue>({
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {data.length > 0 ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className="py-2" key={cell.id}>
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -199,11 +168,8 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={columns.length} className="text-center py-6">
+                  No results found
                 </TableCell>
               </TableRow>
             )}
@@ -211,7 +177,15 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <DataTablePagination table={table} />
+      {/* ✅ IMPORTANT: pass 1-based */}
+      <DataTablePagination
+        table={table}
+        totalRecords={totalRecords}
+        currentPage={currentPage - 1}
+        totalPages={totalPages}
+        perPage={perPage}
+        compact={false}
+      />
     </div>
   );
 }

@@ -1,82 +1,101 @@
-"use client"
+"use client";
 
+import { router } from "@inertiajs/react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
-} from "@radix-ui/react-icons"
+} from "@radix-ui/react-icons";
 
-import { Table } from "@tanstack/react-table"
-
-import { Button } from "@/components/ui/button"
+import { Table } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { cn } from "@/lib/utils" // assuming you have this utility
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface DataTablePaginationProps<TData> {
-  table: Table<TData>
-  
-  compact?: boolean
- 
-  pageSizeOptions?: number[]
+  table: Table<TData>;
+  totalRecords: number;
+  currentPage: number;     // 0-based
+  totalPages: number;
+  perPage: number;
+  compact?: boolean;
 }
 
 export function DataTablePagination<TData>({
   table,
-  compact = true,
-  pageSizeOptions = [5, 10, 20, 30, 50],
+  totalRecords,
+  currentPage,
+  totalPages,
+  perPage,
+  compact = false,
 }: DataTablePaginationProps<TData>) {
-  const selectedCount = table.getFilteredSelectedRowModel().rows.length
-  const filteredCount = table.getFilteredRowModel().rows.length
-  const totalCount = table.getCoreRowModel().rows.length // total before filtering
-  const pageIndex = table.getState().pagination.pageIndex
-  const pageCount = table.getPageCount()
-  const pageSize = table.getState().pagination.pageSize
 
-  const hasPrevious = table.getCanPreviousPage()
-  const hasNext = table.getCanNextPage()
+  const from = totalRecords === 0 ? 0 : currentPage * perPage + 1;
+  const to = totalRecords === 0 ? 0 : Math.min((currentPage + 1) * perPage, totalRecords);
+
+  const goToPage = (pageIndex: number) => {
+    if (pageIndex < 0 || pageIndex >= totalPages) return;
+
+    router.get(
+      window.location.pathname,
+      {
+        page: pageIndex + 1,
+        per_page: perPage,
+        search: new URLSearchParams(window.location.search).get('search') || undefined,
+        status: new URLSearchParams(window.location.search).get('status') || undefined,
+      },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
+
+  const changePageSize = (newPerPage: number) => {
+    router.get(
+      window.location.pathname,
+      {
+        page: 1,
+        per_page: newPerPage,
+        search: new URLSearchParams(window.location.search).get('search') || undefined,
+        status: new URLSearchParams(window.location.search).get('status') || undefined,
+      },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      }
+    );
+  };
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2 py-4">
-      {/* Left side - selection & total info */}
-      <div className="text-sm text-muted-foreground order-2 sm:order-1">
-        {selectedCount > 0 ? (
-          <span>
-            <strong>{selectedCount}</strong> of <strong>{filteredCount}</strong> row(s) selected
-          </span>
-        ) : (
-          <span>
-            Showing <strong>{filteredCount}</strong> of <strong>{totalCount}</strong> entries
-          </span>
-        )}
+      {/* Showing info */}
+      <div className="text-sm text-muted-foreground">
+        Showing <strong>{from}</strong> to <strong>{to}</strong> of{" "}
+        <strong>{totalRecords}</strong> entries
       </div>
 
-      {/* Right side - pagination controls */}
-      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 order-1 sm:order-2">
-        {/* Rows per page */}
+      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4">
+        {/* Rows per page selector */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium whitespace-nowrap hidden sm:inline">
             Rows per page
           </span>
-          <Select
-            value={`${pageSize}`}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value))
-              // Reset to first page when changing page size (common UX pattern)
-              table.setPageIndex(0)
-            }}
-          >
+          <Select value={`${perPage}`} onValueChange={(value) => changePageSize(Number(value))}>
             <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pageSize} />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent side="top">
-              {pageSizeOptions.map((size) => (
+              {[5, 10, 20, 30, 50, 100].map((size) => (
                 <SelectItem key={size} value={`${size}`}>
                   {size}
                 </SelectItem>
@@ -87,7 +106,7 @@ export function DataTablePagination<TData>({
 
         {/* Page info */}
         <div className="text-sm font-medium whitespace-nowrap hidden md:block">
-          Page {pageIndex + 1} of {pageCount || 1}
+          Page {currentPage + 1} of {totalPages || 1}
         </div>
 
         {/* Navigation buttons */}
@@ -95,10 +114,9 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             size="icon"
-            className={cn("hidden lg:flex h-8 w-8", compact && "lg:hidden")}
-            onClick={() => table.setPageIndex(0)}
-            disabled={!hasPrevious}
-            aria-label="Go to first page"
+            className={cn("h-8 w-8", compact && "hidden lg:flex")}
+            onClick={() => goToPage(0)}
+            disabled={currentPage === 0}
           >
             <DoubleArrowLeftIcon className="h-4 w-4" />
           </Button>
@@ -107,9 +125,8 @@ export function DataTablePagination<TData>({
             variant="outline"
             size="icon"
             className="h-8 w-8"
-            onClick={() => table.previousPage()}
-            disabled={!hasPrevious}
-            aria-label="Previous page"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 0}
           >
             <ChevronLeftIcon className="h-4 w-4" />
           </Button>
@@ -118,9 +135,8 @@ export function DataTablePagination<TData>({
             variant="outline"
             size="icon"
             className="h-8 w-8"
-            onClick={() => table.nextPage()}
-            disabled={!hasNext}
-            aria-label="Next page"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
           >
             <ChevronRightIcon className="h-4 w-4" />
           </Button>
@@ -128,15 +144,14 @@ export function DataTablePagination<TData>({
           <Button
             variant="outline"
             size="icon"
-            className={cn("hidden lg:flex h-8 w-8", compact && "lg:hidden")}
-            onClick={() => table.setPageIndex(pageCount - 1)}
-            disabled={!hasNext}
-            aria-label="Go to last page"
+            className={cn("h-8 w-8", compact && "hidden lg:flex")}
+            onClick={() => goToPage(totalPages - 1)}
+            disabled={currentPage >= totalPages - 1}
           >
             <DoubleArrowRightIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
