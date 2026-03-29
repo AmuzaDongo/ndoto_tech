@@ -49,4 +49,19 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    public function professionalBookings()
+    {
+        return $this->hasMany(Booking::class, 'professional_id');
+    }
+
+    public function clientBookings()
+    {
+        return $this->hasMany(Booking::class, 'client_id');
+    }
+
+    public function slots()
+    {
+        return $this->hasMany(ConsultationSlot::class, 'professional_id');
+    }
 }
