@@ -1,7 +1,12 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { Plus, Users, CheckCircle, Clock, DollarSign } from "lucide-react";
+import { useState } from 'react';
+import { toast } from "sonner";
+import ConsultationFormModal from "@/components/admin/Consultation/ConsultationFormModal";
+import ConsultationShowModal from "@/components/admin/Consultation/ConsultationShowModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/confirm-provider";
 import { DataTable } from "@/components/ui/data-table";
 import AppLayout from "@/layouts/app-layout";
 import type { BreadcrumbItem } from "@/types";
@@ -35,7 +40,78 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 
-export default function Index({ consultations, stats }: Props) {
+export default function Index({ consultations: initialConsultations, stats }: Props) {
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [showModalOpen, setShowModalOpen] = useState(false);
+  const [selectedConsultation, setSelectedConsultation] = useState<any>(null);
+  const [consultations, setConsultations] = useState(initialConsultations);
+  const { confirm } = useConfirm();
+
+
+  const handleApproveReject = (consultation: any, status: "approved" | "rejected") => {
+    confirm({
+      title: `${status === "approved" ? "Approve" : "Reject"} Consultation`,
+      description: `Are you sure you want to ${status} this consultation?`,
+      onConfirm: async () => {
+        const promise = new Promise((resolve, reject) => {
+          router.put(
+            admin.consultations.update(consultation.id),
+            { status },
+            {
+              onSuccess: (updated: any) => {
+                handleStatusUpdate(updated); // update UI instantly
+                resolve(updated);
+              },
+              onError: reject,
+            }
+          );
+        });
+
+        toast.promise(promise, {
+          loading: `${status === "approved" ? "Approving" : "Rejecting"}...`,
+          success: `Consultation ${status} successfully ✅`,
+          error: `Failed to ${status} consultation ❌`,
+        });
+
+        await promise;
+      },
+    });
+  };
+
+  const handleStatusUpdate = (updated: any) => {
+  setConsultations((prev) => ({
+    ...prev,
+    data: prev.data.map((c) => (c.id === updated.id ? updated : c)), // update only the matching consultation
+  }));
+};
+
+  const handleView = (consultation: any) => {
+    setSelectedConsultation(consultation);
+    setShowModalOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    confirm({
+      title: "Delete Consultation",
+      description: "This action cannot be undone.",
+      onConfirm: async () => {
+        const promise = new Promise((resolve, reject) => {
+          router.delete(admin.consultations.destroy(id), {
+            onSuccess: resolve,
+            onError: reject,
+          });
+        });
+
+        toast.promise(promise, {
+          loading: "Deleting consultation...",
+          success: "Consultation deleted successfully ✅",
+          error: "Failed to delete consultation ❌",
+        });
+
+        await promise;
+      },
+    });
+  };
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Consultations Management" />
@@ -51,8 +127,8 @@ export default function Index({ consultations, stats }: Props) {
 
           <Button asChild>
             <a href="{consultationsRoute.create()}">
-              <Plus className="mr-2 h-4 w-4" />
-              New Consultation
+              <Plus className="mr-1 h-4 w-4" />
+              Consultation Slot
             </a>
           </Button>
         </div>
@@ -122,7 +198,14 @@ export default function Index({ consultations, stats }: Props) {
           </CardHeader>
           <CardContent className="pt-0">
             <DataTable
-              columns={columns}
+              columns={columns({
+                onView: handleView,
+                onApprove: (consultation) =>
+                  handleApproveReject(consultation, "approved"),
+                onReject: (consultation) =>
+                  handleApproveReject(consultation, "rejected"),
+                onDelete: handleDelete,
+              })}
               data={consultations?.data ?? []}
 
               totalRecords={consultations?.total ?? 0}
@@ -136,6 +219,20 @@ export default function Index({ consultations, stats }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      <ConsultationFormModal
+        open={formModalOpen}
+        onClose={() => setFormModalOpen(false)}
+        client={selectedConsultation}
+      />
+
+      <ConsultationShowModal
+        open={showModalOpen}
+        onClose={() => setShowModalOpen(false)}
+        consultation={selectedConsultation}
+        onUpdate={handleStatusUpdate}
+      />
+
     </AppLayout>
   );
 }

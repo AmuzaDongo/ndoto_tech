@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Consultation;
 
-class ConsultationController extends Controller
+class AdminConsultationController extends Controller
 {
     public function index(Request $request)
     {
@@ -57,5 +57,45 @@ class ConsultationController extends Controller
                 'per_page'
             ]),
         ]);
+    }
+
+    public function show(Consultation $consultation)
+    {
+        return Inertia::render('admin/Consultations/Index', [
+            'consultations' => Consultation::orderBy('name')->paginate(10),
+
+            'consultationToShow' => $consultation,
+
+            'selectedConsultationId' => $consultation->id,
+        ]);
+    }
+
+    public function edit(Consultation $consultation)
+    {
+        return Inertia::render('admin/Consultations/Index', [
+            'consultations' => Consultation::orderBy('name')->get(),
+            'consultationToEdit' => $consultation,
+        ]);
+    }
+
+    public function update(Request $request, Consultation $consultation)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,approved,rejected,in_progress,completed',
+        ]);
+
+        $consultation->update([
+            'status' => $validated['status'],
+        ]);
+
+        return redirect()->back()->with('success', 'Status updated successfully.');
+    }
+
+    public function destroy(Consultation $consultation)
+    {
+        $consultation->delete();
+        return redirect()
+            ->route('admin.consultations.index')
+            ->with('success', 'Consultation deleted successfully.');
     }
 }

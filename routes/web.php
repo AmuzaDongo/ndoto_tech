@@ -16,7 +16,7 @@ use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\Admin\AdminProjectController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminClientController;
-use App\Http\Controllers\Admin\ConsultationController as AdminConsultationController;
+use App\Http\Controllers\Admin\AdminConsultationController;
 use App\Http\Controllers\Admin\ConsultationSlotController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 
@@ -55,8 +55,7 @@ Route::middleware(['auth', 'verified'])
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
-        Route::get('/consultations', [AdminConsultationController::class, 'index'])
-            ->name('consultations.index');
+        Route::resource('consultations', AdminConsultationController::class)->names('consultations');
     });
 
 

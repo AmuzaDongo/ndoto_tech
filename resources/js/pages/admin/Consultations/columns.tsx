@@ -22,8 +22,14 @@ export type Consultation = {
   status: "pending" | "approved" | "rejected" | "completed" | string
 }
 
-export const columns: ColumnDef<Consultation>[] = [
-  // ── Checkbox column for bulk selection ────────────────────────────────
+interface ColumnActions {
+  onView: (consultation: Consultation) => void;
+  onApprove: (consultation: Consultation) => void;
+  onReject: (consultation: Consultation) => void;
+  onDelete: (id: number) => void;
+}
+
+export const columns = (actions: ColumnActions): ColumnDef<Consultation>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -125,12 +131,12 @@ export const columns: ColumnDef<Consultation>[] = [
               Copy email
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Approve</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem onClick={() => actions.onView(consultation)}>View details</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => actions.onApprove(consultation)} disabled={consultation.status === "approved"}>Approve</DropdownMenuItem>
+            <DropdownMenuItem  onClick={() => actions.onReject(consultation)} disabled={consultation.status === "rejected"} className="text-destructive">
               Reject
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem  onClick={() => actions.onDelete(consultation.id)} className="text-destructive">
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
