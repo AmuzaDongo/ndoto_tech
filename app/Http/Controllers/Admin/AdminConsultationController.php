@@ -81,7 +81,7 @@ class AdminConsultationController extends Controller
     public function update(Request $request, Consultation $consultation)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,approved,rejected,in_progress,completed',
+            'status' => 'required|in:new,contacted,qualified,converted_to_booking,closed',
         ]);
 
         $consultation->update([
