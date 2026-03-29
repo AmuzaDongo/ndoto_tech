@@ -26,6 +26,35 @@ class ConsultationSlot extends Model
         'end_time' => 'datetime',
     ];
 
+
+    public static function getAvailableSlots($professionalId, $date = null)
+    {
+        $query = self::where('professional_id', $professionalId)
+                    ->where('status', 'available')
+                    ->where('start_time', '>=', now());
+
+        if ($date) {
+            $query->whereDate('start_time', $date);
+        }
+
+        return $query->orderBy('start_time')->get();
+    }
+
+    public static function isTimeAvailable($professionalId, $startTime, $endTime)
+    {
+        return !self::where('professional_id', $professionalId)
+                    ->where('status', '!=', 'cancelled')  // ignore cancelled slots
+                    ->where(function ($query) use ($startTime, $endTime) {
+                        $query->whereBetween('start_time', [$startTime, $endTime])
+                            ->orWhereBetween('end_time', [$startTime, $endTime])
+                            ->orWhere(function ($q) use ($startTime, $endTime) {
+                                $q->where('start_time', '<', $startTime)
+                                    ->where('end_time', '>', $endTime);
+                            });
+                    })
+                    ->exists();
+    }
+
     // Relationships
     public function professional(): BelongsTo
     {
