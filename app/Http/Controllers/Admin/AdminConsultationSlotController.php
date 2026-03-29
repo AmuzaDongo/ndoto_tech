@@ -81,7 +81,7 @@ class AdminConsultationSlotController extends Controller
     public function update(Request $request, ConsultationSlot $slot)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,approved,rejected,in_progress,completed',
+            'status' => 'required|in:available,booked,blocked,completed,cancelled',
         ]);
 
         $slot->update([
