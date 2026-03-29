@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('consultations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email');
+            $table->string('email')->index();
             $table->string('phone')->nullable();
             $table->string('company')->nullable();
-            $table->string('service');
-            $table->string('budget')->nullable();
-            $table->date('preferred_date')->nullable();
+            $table->foreignId('service_id')->nullable()->constrained('services'); // better than string
+            $table->decimal('budget', 12, 2)->nullable();
             $table->text('message');
-            $table->string('status')->default('pending');
+            $table->string('status')->default('new'); // new, contacted, qualified, converted_to_booking, closed
+            $table->foreignId('assigned_to')->nullable()->constrained('users'); // which team member handles this lead
             $table->timestamps();
         });
     }
