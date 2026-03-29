@@ -17,4 +17,9 @@ class Consultation extends Model
         'message',
         'status'
     ];
+
+    public function booking()
+    {
+        return $this->hasOne(Booking::class, 'consultation_id');
+    }
 }
