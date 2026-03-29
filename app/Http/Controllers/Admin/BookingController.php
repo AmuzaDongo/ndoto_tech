@@ -10,47 +10,84 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::query();
+        $query = Booking::query()
+            ->with(['professional', 'service', 'client'])   // Eager load relationships
+            ->select('bookings.*');                         // Explicit selection for clarity
 
         $query->when($request->search, function ($q, $search) {
             $q->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('service', 'like', "%{$search}%");
+                $qq->where('guest_name', 'like', "%{$search}%")
+                ->orWhere('guest_email', 'like', "%{$search}%")
+                ->orWhere('guest_company', 'like', "%{$search}%")
+                ->orWhereHas('client', function ($clientQuery) use ($search) {
+                    $clientQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhereHas('professional', function ($proQuery) use ($search) {
+                    $proQuery->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('service', function ($serviceQuery) use ($search) {
+                    $serviceQuery->where('name', 'like', "%{$search}%");
+                });
             });
         });
 
+        // Filter by status
         $query->when($request->filled('status'), function ($q, $status) {
             $q->where('status', $status);
         });
 
-        if ($request->filled('sort') && $request->filled('direction')) {
-            $allowed = ['name', 'email', 'service', 'created_at'];
+        // Filter by professional (very useful for admin)
+        $query->when($request->filled('professional_id'), function ($q, $professionalId) {
+            $q->where('professional_id', $professionalId);
+        });
 
-            if (in_array($request->sort, $allowed)) {
-                $query->orderBy($request->sort, $request->direction);
+        // Sorting
+        if ($request->filled('sort') && $request->filled('direction')) {
+            $allowedSorts = ['start_time', 'created_at', 'guest_name', 'status'];
+
+            if (in_array($request->sort, $allowedSorts)) {
+                $direction = in_array(strtolower($request->direction), ['asc', 'desc']) 
+                            ? $request->direction 
+                            : 'desc';
+
+                if ($request->sort === 'guest_name') {
+                    $query->orderBy('guest_name', $direction);
+                } else {
+                    $query->orderBy($request->sort, $direction);
+                }
             }
+        } else {
+            // Default sorting: newest first
+            $query->orderBy('start_time', 'desc');
         }
 
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = (int) $request->get('per_page', 15);
 
         $bookings = $query->paginate($perPage)->withQueryString();
 
+        // Updated stats (more relevant to your current structure)
         $stats = [
-            'total'       => Booking::count(),
-            'pending'     => Booking::where('status', 'pending')->count(),
-            'in_progress' => Booking::where('status', 'in_progress')->count(),
-            'completed'   => Booking::where('status', 'completed')->count(),
-            'total_revenue' => Booking::whereNotNull('amount')
-                ->sum('amount'), 
+            'total'          => Booking::count(),
+            'pending'        => Booking::where('status', 'pending')->count(),
+            'confirmed'      => Booking::where('status', 'confirmed')->count(),
+            'completed'      => Booking::where('status', 'completed')->count(),
+            'cancelled'      => Booking::where('status', 'cancelled')->count(),
+            'total_revenue'  => Booking::whereNotNull('price')
+                                    ->whereIn('status', ['confirmed', 'completed'])
+                                    ->sum('price'),
+            'upcoming'       => Booking::where('start_time', '>', now())
+                                    ->whereIn('status', ['pending', 'confirmed'])
+                                    ->count(),
         ];
 
         return Inertia::render('admin/Bookings/Index', [
             'bookings' => $bookings,
-            'stats'         => $stats,
-            'filters'       => $request->only([
+            'stats'    => $stats,
+            'filters'  => $request->only([
                 'search',
                 'status',
+                'professional_id',
                 'sort',
                 'direction',
                 'per_page'
