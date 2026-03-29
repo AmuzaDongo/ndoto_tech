@@ -13,18 +13,10 @@ interface ConsultationFormValues {
   service: string;
   budget: string;
   message: string;
-  consultation_slot_id: string;
   preferred_date: Date | null;
 }
 
 const ConsultationForm: React.FC = () => {
-  const [slots, setSlots] = React.useState([]);
-
-  React.useEffect(() => {
-    axios.get("/consultation/slots").then((res) => {
-      setSlots(res.data);
-    });
-  }, []);
 
   const formik = useFormik<ConsultationFormValues>({
     initialValues: {
@@ -35,7 +27,6 @@ const ConsultationForm: React.FC = () => {
       service: "",
       budget: "",
       message: "",
-      consultation_slot_id: "",
       preferred_date: null,
     },
     validationSchema: Yup.object({
@@ -164,22 +155,6 @@ const ConsultationForm: React.FC = () => {
           {formik.touched.message && formik.errors.message && (
             <div className="text-red-500">{formik.errors.message}</div>
           )}
-
-          <div>
-            <select
-              name="consultation_slot_id"
-              onChange={formik.handleChange}
-              className="w-full px-4 py-2 border rounded-lg"
-            >
-              <option value="">Select Time Slot</option>
-
-              {slots.map((slot: any) => (
-                <option key={slot.id} value={slot.id}>
-                  {new Date(slot.start_time).toLocaleString()}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {/* Calendar Picker */}
           <div className="mt-4">

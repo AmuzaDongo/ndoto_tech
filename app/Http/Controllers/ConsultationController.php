@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use App\Http\Requests\StoreConsultationRequest;
 use App\Services\ConsultationService;
-use App\Models\ConsultationSlot;
 
 class ConsultationController extends Controller
 {
@@ -18,16 +17,6 @@ class ConsultationController extends Controller
     public function index()
     {
         return Inertia::render('consultation/index');
-    }
-
-    public function availableSlots()
-    {
-        $slots = ConsultationSlot::where('is_booked', false)
-            ->where('start_time', '>', now())
-            ->orderBy('start_time')
-            ->get();
-
-        return response()->json($slots);
     }
 
     public function store(StoreConsultationRequest $request)

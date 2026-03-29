@@ -11,12 +11,17 @@ class Consultation extends Model
         'email',
         'phone',
         'company',
-        'service',
+        'service_id',
         'budget',
         'preferred_date',
         'message',
         'status'
     ];
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     public function booking()
     {
