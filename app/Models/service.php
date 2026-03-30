@@ -56,6 +56,11 @@ class Service extends Model
         return $this->hasMany(Project::class);
     }
 
+    public function consultations()
+    {
+        return $this->hasMany(Consultation::class);
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);

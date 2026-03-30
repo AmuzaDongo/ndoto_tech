@@ -22,15 +22,13 @@ class StoreConsultationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'phone' => 'required|string|max:20',
-            'company' => 'nullable|string|max:255',
-            'service' => 'required|string|max:255',
-            'budget' => 'nullable|string|max:255',
-            'message' => 'required|string',
-            'consultation_slot_id' => 'required|string',
-            'preferred_date' => 'required|date|after:now'
+            'name' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'phone' => ['required', 'string'],
+            'company' => ['nullable', 'string'],
+            'service_id' => ['required', 'exists:services,id'],
+            'budget' => ['nullable', 'string'],
+            'message' => ['required', 'string'],
         ];
     }
 }

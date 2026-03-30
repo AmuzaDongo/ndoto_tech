@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
 import { MoreHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -69,21 +68,16 @@ export const columns = (actions: ColumnActions): ColumnDef<Consultation>[] => [
 
   // ── Service ───────────────────────────────────────────────────────────
   {
-    accessorKey: "service",
+    accessorKey: "service.title",
     header: "Service",
     enableSorting: true,
   },
 
   // ── Preferred Date ────────────────────────────────────────────────────
   {
-    accessorKey: "preferred_date",
-    header: "Date",
+    accessorKey: "company",
+    header: "Company Name",
     enableSorting: true,
-    cell: ({ row }) => {
-      const date = row.getValue("preferred_date") as string
-      // Safeguard + nice formatting
-      return date ? format(new Date(date), "MMM dd, yyyy") : "—"
-    },
   },
 
   // ── Status with colored badges ────────────────────────────────────────

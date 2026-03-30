@@ -27,6 +27,7 @@ const testimonials = [
   { name: "John Smith", company: "Enterprise Inc", quote: "Professional, actionable, and very knowledgeable team." },
 ];
 
+
 export default function ConsultationPage() {
 
   const [faqOpen, setFaqOpen] = useState<number | null>(null);

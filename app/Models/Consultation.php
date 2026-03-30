@@ -13,7 +13,6 @@ class Consultation extends Model
         'company',
         'service_id',
         'budget',
-        'preferred_date',
         'message',
         'status'
     ];

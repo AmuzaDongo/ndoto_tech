@@ -1,22 +1,30 @@
-import axios from "axios";
+import { router, usePage } from '@inertiajs/react';
 import { useFormik } from "formik";
 import React from "react";
-import DatePicker from "react-datepicker";
+import { toast } from 'sonner';
 import * as Yup from "yup";
 import "react-datepicker/dist/react-datepicker.css";
+import consultations from '@/wayfinder/routes/consultations';
 
 interface ConsultationFormValues {
   name: string;
   email: string;
   phone: string;
   company: string;
-  service: string;
+  service_id: string;
   budget: string;
   message: string;
-  preferred_date: Date | null;
+}
+interface Service {
+  id: number;
+  title: string;
 }
 
-const ConsultationForm: React.FC = () => {
+const ConsultationForm: React.FC= () => {
+
+  const { services = [] } = usePage().props as {
+    services?: Service[];
+  };
 
   const formik = useFormik<ConsultationFormValues>({
     initialValues: {
@@ -24,42 +32,28 @@ const ConsultationForm: React.FC = () => {
       email: "",
       phone: "",
       company: "",
-      service: "",
+      service_id: "",
       budget: "",
       message: "",
-      preferred_date: null,
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Full Name is required"),
       email: Yup.string().email("Invalid email").required("Email is required"),
       phone: Yup.string().required("Phone is required"),
-      service: Yup.string().required("Please select a service"),
+      service_id: Yup.string().required("Service is required"),
       message: Yup.string().required("Message is required"),
-      consultation_slot_id: Yup.string().required("Please select a time slot"),
-      preferred_date: Yup.date().nullable().required("Please select a date & time"),
     }),
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-      setSubmitting(true);
-
-      try {
-        const res = await axios.post("/consultations", values);
-
-        alert(res.data.message);
-
-        resetForm();
-
-      } catch (error: any) {
-
-        console.error(error);
-
-        alert(
-          error?.response?.data?.message ||
-          "Unable to submit consultation request"
-        );
-
-      } finally {
-        setSubmitting(false);
-      }
+    onSubmit: (values, { setSubmitting, resetForm }) => {
+      router.post(consultations.store(), {
+        ...values,
+        service_id: Number(values.service_id),
+      }, {
+        onSuccess: () => {
+          toast.success('Consultation sent successfully');
+          resetForm();
+        },
+        onFinish: () => setSubmitting(false),
+      });
     }
   });
 
@@ -117,22 +111,27 @@ const ConsultationForm: React.FC = () => {
           />
 
           <select
-            name="service"
-            value={formik.values.service}
+            name="service_id"
+            value={formik.values.service_id}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             className="w-full px-4 py-2 border rounded-lg"
           >
             <option value="">Select Service</option>
-            <option value="Web Development">Web Development</option>
-            <option value="Mobile App">Mobile App</option>
-            <option value="Digital Marketing">Digital Marketing</option>
-            <option value="IT Consultance">IT Consultance</option>
-            <option value="Data Analytics">Data Analytics</option>
-            <option value="Systems Integration">Systems Integration</option>
+
+            {services.length === 0 ? (
+              <option disabled>Loading services...</option>
+            ) : (
+              services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.title}
+                </option>
+              ))
+            )}
           </select>
-          {formik.touched.service && formik.errors.service && (
-            <div className="text-red-500">{formik.errors.service}</div>
+
+          {formik.touched.service_id && formik.errors.service_id && (
+            <div className="text-red-500">{formik.errors.service_id}</div>
           )}
 
           <input
@@ -155,25 +154,6 @@ const ConsultationForm: React.FC = () => {
           {formik.touched.message && formik.errors.message && (
             <div className="text-red-500">{formik.errors.message}</div>
           )}
-
-          {/* Calendar Picker */}
-          <div className="mt-4">
-
-            <label className="block mb-2 font-semibold">Select Date & Time</label>
-            <DatePicker
-              selected={formik.values.preferred_date}
-              placeholderText="Date and Time"
-              onChange={(date: Date | null) => formik.setFieldValue("preferred_date", date)}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={30}
-              dateFormat="MMMM d, yyyy h:mm aa"
-              className="w-full px-4 py-2 border rounded-lg"
-            />
-            {formik.touched.preferred_date && formik.errors.preferred_date && (
-              <div className="text-red-500">{formik.errors.preferred_date}</div>
-            )}
-          </div>
 
           <button
             type="submit"

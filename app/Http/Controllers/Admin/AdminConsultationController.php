@@ -35,13 +35,14 @@ class AdminConsultationController extends Controller
 
         $perPage = (int) $request->get('per_page', 10);
 
-        $consultations = $query->paginate($perPage)->withQueryString();
+        $consultations = $query->with('service')->paginate($perPage)->withQueryString();
 
         $stats = [
             'total'       => Consultation::count(),
-            'pending'     => Consultation::where('status', 'pending')->count(),
-            'in_progress' => Consultation::where('status', 'in_progress')->count(),
-            'completed'   => Consultation::where('status', 'completed')->count(),
+            'new'     => Consultation::where('status', 'new')->count(),
+            'contacted' => Consultation::where('status', 'contacted')->count(),
+            'converted_to_booking' => Consultation::where('status', 'converted_to_booking')->count(),
+            'closed'   => Consultation::where('status', 'closed')->count(),
             'total_revenue' => Consultation::whereNotNull('amount')
                 ->sum('amount'), 
         ];

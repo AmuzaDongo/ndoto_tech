@@ -8,12 +8,12 @@ use App\Notifications\ClientConsultationNotification;
 use App\Notifications\AdminConsultationNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use App\Services\GoogleCalendarService;
+// use App\Services\GoogleCalendarService;
 
 class ConsultationService
 {
     public function __construct(
-        protected GoogleCalendarService $calendar
+        // protected GoogleCalendarService $calendar
     ) {}
 
     public function create(array $data)
@@ -30,8 +30,6 @@ class ConsultationService
                 'service_id'      => $data['service_id'],
                 'budget' => $data['budget'] ?? null,
                 'message' => $data['message'],
-                'preferred_date' => $slot->start_time,
-                'consultation_slot_id' => $slot->id,
             ]);
 
 
@@ -48,7 +46,7 @@ class ConsultationService
                     ->notify(new AdminConsultationNotification($consultation));
             });
 
-            $this->calendar->createEvent($consultation);
+            // $this->calendar->createEvent($consultation);
 
             return $consultation;
 
