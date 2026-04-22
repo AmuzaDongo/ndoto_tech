@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\AdminClientController;
 use App\Http\Controllers\Admin\AdminConsultationController;
 use App\Http\Controllers\Admin\ConsultationSlotController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\UserController;
 
 
 
@@ -34,10 +35,14 @@ Route::get('/services', [ServiceController::class, 'index'])->name('services.ind
 Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
 
 
+
 Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->as('admin.')
     ->group(function () {
+
+        Route::resource('users', UserController::class)
+            ->names('users');
 
         Route::resource('slots', ConsultationSlotController::class)
             ->only(['index', 'store', 'destroy']);

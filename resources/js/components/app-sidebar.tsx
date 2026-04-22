@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { MessageCircleMore, Forklift, Handshake, HandPlatter, LayoutGrid, MessageCircleHeart, ShieldCheck, SwatchBook, ListOrdered, UserPlus} from 'lucide-react';
+import { MessageCircleMore, Forklift, Handshake, HandPlatter, LayoutGrid, MessageCircleHeart, ShieldCheck, SwatchBook, ListOrdered, UserPlus, User2Icon} from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -65,6 +65,11 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: SwatchBook,
     },
+    {
+        title: 'Users',
+        href: admin.users.index(),
+        icon: User2Icon,
+    }
 ];
 
 const footerNavItems: NavItem[] = [

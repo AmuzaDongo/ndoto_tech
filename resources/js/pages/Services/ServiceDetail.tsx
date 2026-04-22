@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { servicesDetails } from '@/data/services';
-import { services } from '@/wayfinder/routes';
+import services from '@/wayfinder/routes/services';
 
 interface Service {
   id: string;
@@ -69,7 +69,7 @@ export default function ServiceDetail() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6 lg:px-8">
           <Link
-            href={services()}
+            href={services.index()}
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-10 group"
           >
             <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />

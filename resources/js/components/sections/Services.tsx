@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { servicesDetails } from '@/data/services';
-import { services } from '@/wayfinder/routes';
+import services from '@/wayfinder/routes/services';
 
 const ServicesSection = () => {
   return (
@@ -28,7 +28,7 @@ const ServicesSection = () => {
           {servicesDetails.map((service) => (
             <Link
               key={service.id}
-              href={services.url() }   // ← Updated to match your route
+              href={services.index() }   // ← Updated to match your route
               className="group"
             >
               <Card className="h-full overflow-hidden border-0 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white">

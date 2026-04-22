@@ -24,9 +24,7 @@ export default function Index() {
                 ctaLink="/contact"
                 isHomepage={false}
             />
-            <ServicesSection
-                
-            />
+            <ServicesSection/>
             <Footer />
         </>
     );
